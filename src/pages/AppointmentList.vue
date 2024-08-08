@@ -2,6 +2,9 @@
 import MeetingRoomItem from '../components/MeetingRoomItem.vue';
 import DateSlidePicker from '../components/DateSlidePicker.vue';
 import MeetingAppHeader from '../components/MeetingAppHeader.vue';
+import { getAppointmentList } from '@/api/appointment';
+
+console.log('getAppointmentList', getAppointmentList);
 
 const emits = defineEmits(['select'])
 </script>

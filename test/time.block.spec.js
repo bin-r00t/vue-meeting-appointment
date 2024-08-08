@@ -6,13 +6,15 @@ chai.should();
 describe("时间块展示", function () {
   it("four blocks", function () {
     const time = [
-      { startTime: "08:00", endTime: "08:45" },
+      { startTime: "08:00", endTime: "08:15" },
+      { startTime: "08:30", endTime: "08:45" },
       { startTime: "08:45", endTime: "10:30" },
       { startTime: "13:30", endTime: "14:00" },
     ];
-    timeBlock4(time).should.be([
+    const res = timeBlock4(time);
+    res.should.deep.equal([
       // 08:00
-      [1, 1, 1, 1],
+      [1, 0, 1, 1],
       // 09:00
       [1, 1, 1, 1],
       // 10:00
@@ -22,7 +24,7 @@ describe("时间块展示", function () {
       // 12:00
       [0, 0, 0, 0],
       // 13:00
-      [0, 0, 0, 0],
+      [0, 0, 1, 1],
       // 14:00
       [0, 0, 0, 0],
       // 15:00
@@ -48,11 +50,13 @@ describe("时间块展示", function () {
 
   it("two blocks", function () {
     const time = [
-      { startTime: "08:00", endTime: "08:45" },
+      { startTime: "08:00", endTime: "08:15" },
+      { startTime: "08:30", endTime: "08:45" },
       { startTime: "08:45", endTime: "10:30" },
       { startTime: "13:30", endTime: "14:00" },
     ];
-    timeBlock2(time).should.be([
+    const res = timeBlock2(time);
+    res.should.deep.equal([
       // 08:00
       [1, 1],
       // 09:00
@@ -64,7 +68,7 @@ describe("时间块展示", function () {
       // 12:00
       [0, 0],
       // 13:00
-      [0, 0],
+      [0, 1],
       // 14:00
       [0, 0],
       // 15:00

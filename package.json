@@ -15,6 +15,7 @@
     "vue": "^3.4.31"
   },
   "devDependencies": {
+    "@types/mockjs": "^1.0.10",
     "@vitejs/plugin-vue": "^5.0.5",
     "autoprefixer": "^10.4.20",
     "mockjs": "^1.1.0",

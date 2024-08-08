@@ -54,6 +54,7 @@ describe("时间块展示", function () {
       { startTime: "08:30", endTime: "08:45" },
       { startTime: "08:45", endTime: "10:30" },
       { startTime: "13:30", endTime: "14:00" },
+      { startTime: "15:30", endTime: "16:15" },
     ];
     const res = timeBlock2(time);
     res.should.deep.equal([
@@ -72,9 +73,9 @@ describe("时间块展示", function () {
       // 14:00
       [0, 0],
       // 15:00
-      [0, 0],
+      [0, 1],
       // 16:00
-      [0, 0],
+      [1, 0],
       // 17:00
       [0, 0],
       // 18:00

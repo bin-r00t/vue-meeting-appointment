@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test": "mocha",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -15,9 +16,13 @@
     "vue": "^3.4.31"
   },
   "devDependencies": {
+    "@types/chai": "^4.3.17",
+    "@types/mocha": "^10.0.7",
     "@types/mockjs": "^1.0.10",
     "@vitejs/plugin-vue": "^5.0.5",
     "autoprefixer": "^10.4.20",
+    "chai": "^5.1.1",
+    "mocha": "^10.7.0",
     "mockjs": "^1.1.0",
     "postcss": "^8.4.41",
     "tailwindcss": "^3.4.7",

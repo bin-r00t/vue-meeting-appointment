@@ -1,9 +1,9 @@
 import instance from "@/utils/request";
 
-export function getAppointmentList(data) {
+export function getAppointmentList(params) {
   return instance({
-    url: "/api/appointment/list",
+    url: "/api/room/listByDate",
     method: "post",
-    data,
+    params,
   });
 }

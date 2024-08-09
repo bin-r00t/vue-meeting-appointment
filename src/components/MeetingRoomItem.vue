@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import DateBoxSimple from "./DateBoxSimple.vue";
 import { UsersIcon, MapIcon } from "@heroicons/vue/24/outline";
+import { timeBlock2 } from "../utils";
 const props = defineProps([
   "id",
   "name",
@@ -12,8 +13,9 @@ const props = defineProps([
   "time",
 ]);
 const emits = defineEmits(["select"]);
-
 const eqList = computed(() => props.equipment.split(","));
+const timeArr = timeBlock2(props.time);
+
 </script>
 
 <template>
@@ -47,7 +49,11 @@ const eqList = computed(() => props.equipment.split(","));
       <span class="text-xs">备注: {{ description }}</span>
     </section>
     <section class="date-list flex justify-between">
-      <DateBoxSimple v-for="n in 16" />
+      <DateBoxSimple
+        v-for="(n, i) in timeArr"
+        :hour="i + 8"
+        :occupiedStatus="n"
+      />
     </section>
   </div>
 </template>

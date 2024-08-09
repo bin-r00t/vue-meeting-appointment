@@ -4,21 +4,49 @@ import DateSlidePicker from "@com/DateSlidePicker.vue";
 import MeetingAppHeader from "@com/MeetingAppHeader.vue";
 import { getAppointmentList } from "@/api/appointment";
 import { ref } from "vue";
+import dayjs from "dayjs";
 
 const rooms = ref([]);
-
-getAppointmentList().then(({ data }) => {
+const TODO_TIME_ARR = [
+  { startTime: "08:00", endTime: "08:15" },
+  { startTime: "08:30", endTime: "08:45" },
+  { startTime: "08:45", endTime: "10:30" },
+  { startTime: "13:30", endTime: "14:00" },
+  { startTime: "14:30", endTime: "15:30" },
+  { startTime: "18:15", endTime: "19:00" },
+  { startTime: "20:45", endTime: "21:15" },
+];
+getAppointmentList({
+  page: 1,
+  size: 5,
+  datetime: dayjs().format("YYYY-MM-DD"),
+}).then(({ data }) => {
   console.table(data);
   rooms.value = data;
 });
 
 const emits = defineEmits(["select"]);
+
+/**
+ *
+ * @param date YYYY-MM-DD
+ */
+function handlePickDate(date) {
+  console.log("pull new data!");
+  getAppointmentList({
+    page: 1,
+    size: 5,
+    datetime: date,
+  }).then(({ data }) => {
+    rooms.value = data;
+  });
+}
 </script>
 
 <template>
   <div class="h-screen overflow-y-auto bg-gray-100 flex flex-col">
     <MeetingAppHeader />
-    <DateSlidePicker />
+    <DateSlidePicker @pick="handlePickDate" />
     <main class="flex-1 flex flex-col gap-3 overflow-y-auto">
       <!-- placeholder -->
       <p v-if="!rooms.length" class="text-gray-500 text-lg text-center my-10">
@@ -33,7 +61,7 @@ const emits = defineEmits(["select"]);
         :location="room.location"
         :description="room.description"
         :equipment="room.equipment"
-        :time="room.time ?? []"
+        :time="room.time ?? TODO_TIME_ARR"
         @select="(id) => emits('select', id)"
       />
       <!-- spinner  -->

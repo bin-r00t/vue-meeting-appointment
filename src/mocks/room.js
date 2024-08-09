@@ -55,11 +55,14 @@ const BASE_URL = "http://localhost:8000";
 // });
 
 const doMock = function (url, ...options) {
+  if (url instanceof RegExp) {
+    return Mock.mock(url, ...options);
+  }
   return Mock.mock(`${BASE_URL}${url}`, ...options);
 };
 
 /** 所有会议室列表 */
-doMock("/api/appointment/list", "post", {
+doMock(/api\/room\/listByDate/, {
   success: true,
   code: 200,
   "data|2-10": [TEMPLATE.Room],

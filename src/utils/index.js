@@ -7,7 +7,6 @@ export const timeFormatter = () => {};
 
 function handle(startHour, startMinute, endHour, endMinute, step, mapperArray) {
   let hours = endHour - startHour;
-  debugger;
   if (hours < 1) {
     /** 如果没跨小时 */
     let blocks = Math.max(1, (endMinute - startMinute) / step);
@@ -51,7 +50,6 @@ const timeBlockBase = function (time = [], step) {
     const [eHour, eMinute] = endTime.split(":");
     handle(+stHour, +stMinute, +eHour, +eMinute, step, result);
   }
-  console.log(result);
   return result;
 };
 

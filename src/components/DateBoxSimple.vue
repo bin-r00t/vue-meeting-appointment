@@ -6,7 +6,7 @@ const props = defineProps(["hour", "occupiedStatus"]);
 const morningStyles = computed(() => {
   const allOccupied = props.occupiedStatus[0] && props.occupiedStatus[1];
   return allOccupied
-    ? "bg-gray-600"
+    ? "bg-gray-400"
     : props.occupiedStatus[0]
     ? "bg-gray-300"
     : "";
@@ -14,7 +14,7 @@ const morningStyles = computed(() => {
 const afternoonStyles = computed(() => {
   const allOccupied = props.occupiedStatus[0] && props.occupiedStatus[1];
   return allOccupied
-    ? "bg-gray-600"
+    ? "bg-gray-400"
     : props.occupiedStatus[1]
     ? "bg-gray-300"
     : "";

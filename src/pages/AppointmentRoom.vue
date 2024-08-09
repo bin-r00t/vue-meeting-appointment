@@ -7,7 +7,8 @@ import { ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { ref } from "vue";
 import okIcon from "@/assets/ok.png";
 import failedIcon from "@/assets/notok.png";
-import { getAppointmentList } from "../api/appointment";
+import { addAppointment, getAppointmentList } from "../api/appointment";
+import { useSearchConditionStore } from "../store";
 
 const props = defineProps(["id"]);
 const emits = defineEmits(["return"]);
@@ -16,12 +17,21 @@ const uploadInput = ref(null);
 const hintVisible = ref(false);
 
 /** 初始化会议室信息和预定信息 */
+const roomInfo = ref({});
+const searchCondition = useSearchConditionStore();
 getAppointmentList({
   room_id: props.id,
+  datetime: searchCondition.date,
+}).then(({ data }) => {
+  console.log("data", data[0]);
+  roomInfo.value = data[0];
 });
 
 /** 确定预约 */
 function handleConfirm() {
+  addAppointment({
+    ...formData,
+  })
   hintVisible.value = true;
   setTimeout(() => {
     hintVisible.value = false;
@@ -31,17 +41,25 @@ function handleConfirm() {
 function handleCancel() {}
 
 /** 表单 */
-const INITIAL_FORM_DATA = {
-  room_id: "",
+const resetFrom = () => {
+  formData.value.room_id = props.id;
+  formData.value.subject = "";
+  formData.value.date = "";
+  formData.value.time = "";
+  formData.value.participant = [];
+  formData.value.agenda = "";
+  formData.value.attachment = [];
+};
+const seletedFiles = ref([]);
+const formData = ref({
+  room_id: props.id,
   subject: "",
   date: "",
   time: "",
   participant: [],
   agenda: "",
   attachment: [],
-};
-const seletedFiles = ref([]);
-const formData = ref(INITIAL_FORM_DATA);
+});
 </script>
 
 <template>
@@ -52,36 +70,40 @@ const formData = ref(INITIAL_FORM_DATA);
       @return="emits('return')"
     />
     <main class="flex-1 flex flex-col overflow-y-auto bg-gray-200">
-      <!-- {{ id }} -->
-
       <!-- 会议室相关 -->
       <section class="room-detail mb-3 p-4 bg-white flex flex-col gap-3">
         <section class="room-info flex items-center gap-2">
-          <h1 class="font-bold mr-3">101会议室</h1>
+          <h1 class="font-bold mr-3">{{ roomInfo.name }}</h1>
           <i class="icon">
             <UsersIcon class="w-4 h-4" />
           </i>
-          <small>30人</small>
+          <small>{{ roomInfo.count }}人</small>
         </section>
         <section
           class="room-features flex items-center flex-wrap gap-2 text-xs"
         >
-          <span class="bg-gray-200 text-gray-700 p-1 px-2 rounded"
-            >大屏投影</span
-          >
-          <span class="bg-gray-200 text-gray-700 p-1 px-2 rounded">摄像头</span>
-          <span class="bg-gray-200 text-gray-700 p-1 px-2 rounded">白板</span>
+          <p v-if="!roomInfo.equipment" class="text-sm text-gray-600">
+            - 无设备 -
+          </p>
+          <template v-else>
+            <span
+              v-for="eq in roomInfo.equipment.split(',')"
+              :key="eq"
+              class="bg-gray-200 text-gray-700 p-1 px-2 rounded"
+              >{{ eq }}</span
+            >
+          </template>
         </section>
         <section class="room-location flex gap-2">
           <i class="icon">
             <MapIcon class="w-4 h-4" />
           </i>
-          <span class="text-xs">1楼靠东</span>
+          <span class="text-xs">{{ roomInfo.location }}</span>
         </section>
         <section
           class="room-description bg-gray-100 text-gray-800 p-1 px-2 rounded"
         >
-          <span class="text-xs">备注: 超大会议室</span>
+          <span class="text-xs">备注: {{ roomInfo.description }}</span>
         </section>
       </section>
 
@@ -128,8 +150,8 @@ const formData = ref(INITIAL_FORM_DATA);
             </section>
             <section class="participant-selected flex flex-wrap gap-3">
               <p
-                v-if="!formData.participant || formData?.participant?.length"
-                class="text-sm text-gray-6"
+                v-if="!formData.participant || !formData.participant.length"
+                class="text-sm text-gray-600"
               >
                 无
               </p>
@@ -152,6 +174,7 @@ const formData = ref(INITIAL_FORM_DATA);
             id="agenda"
             rows="5"
             placeholder="请输入议程内容"
+            v-model="formData.agenda"
             class="rounded outline-none bg-gray-100 p-2 text-gray-600"
           ></textarea>
         </div>

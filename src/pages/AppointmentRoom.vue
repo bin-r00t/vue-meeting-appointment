@@ -7,20 +7,41 @@ import { ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { ref } from "vue";
 import okIcon from "@/assets/ok.png";
 import failedIcon from "@/assets/notok.png";
+import { getAppointmentList } from "../api/appointment";
 
 const props = defineProps(["id"]);
 const emits = defineEmits(["return"]);
 
 const uploadInput = ref(null);
-
 const hintVisible = ref(false);
+
+/** 初始化会议室信息和预定信息 */
+getAppointmentList({
+  room_id: id,
+})
+
+/** 确定预约 */
 function handleConfirm() {
   hintVisible.value = true;
   setTimeout(() => {
     hintVisible.value = false;
   }, 2000);
 }
+/** 取消本次预约 */
 function handleCancel() {}
+
+/** 表单 */
+const INITIAL_FORM_DATA = {
+  room_id: "",
+  subject: "",
+  date: "",
+  time: "",
+  participant: [],
+  agenda: "",
+  attachment: [],
+};
+const seletedFiles = ref([]);
+const formData = ref(INITIAL_FORM_DATA);
 </script>
 
 <template>
@@ -75,6 +96,7 @@ function handleCancel() {}
             id="subject"
             class="outline-none px-3 text-sm text-right"
             placeholder="请输入会议主题"
+            v-model="formData.subject"
           />
         </div>
         <div class="pb-3">
@@ -105,47 +127,20 @@ function handleCancel() {}
               </button>
             </section>
             <section class="participant-selected flex flex-wrap gap-3">
-              <!-- fake  -->
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >张喜喜</span
+              <p
+                v-if="!formData.participant || formData?.participant?.length"
+                class="text-sm text-gray-6"
               >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >王志鹏</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >王安妮</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >小李</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >张大大</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >张喜喜</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >王璐</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >欧阳话费</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >江西西</span
-              >
-              <span
-                class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                >哈哈哈</span
-              >
+                无
+              </p>
+              <template v-else>
+                <span
+                  v-for="person in formData.participant"
+                  :key="person"
+                  class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
+                  >{{ person }}</span
+                >
+              </template>
             </section>
           </div>
         </div>

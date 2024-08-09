@@ -6,6 +6,7 @@ import { getAppointmentList } from "@/api/appointment";
 import { ref } from "vue";
 import dayjs from "dayjs";
 
+const defaultDate = ref(dayjs().format("YYYY-MM-DD"));
 const rooms = ref([]);
 const TODO_TIME_ARR = [
   { startTime: "08:00", endTime: "08:15" },
@@ -19,7 +20,7 @@ const TODO_TIME_ARR = [
 getAppointmentList({
   page: 1,
   size: 5,
-  datetime: dayjs().format("YYYY-MM-DD"),
+  datetime: defaultDate.value,
 }).then(({ data }) => {
   console.table(data);
   rooms.value = data;
@@ -31,12 +32,13 @@ const emits = defineEmits(["select"]);
  *
  * @param date YYYY-MM-DD
  */
-function handlePickDate(date) {
-  console.log("pull new data!");
+function handlePickDate(date, filterCondition = {}) {
+  console.log("------- pull new data ----------");
   getAppointmentList({
     page: 1,
     size: 5,
-    datetime: date,
+    datetime: date ?? defaultDate.value,
+    ...filterCondition,
   }).then(({ data }) => {
     rooms.value = data;
   });
@@ -46,7 +48,10 @@ function handlePickDate(date) {
 <template>
   <div class="h-screen overflow-y-auto bg-gray-100 flex flex-col">
     <MeetingAppHeader />
-    <DateSlidePicker @pick="handlePickDate" />
+    <DateSlidePicker
+      @pick="handlePickDate"
+      @filter="(condition) => handlePickDate(null, condition)"
+    />
     <main class="flex-1 flex flex-col gap-3 overflow-y-auto">
       <!-- placeholder -->
       <p v-if="!rooms.length" class="text-gray-500 text-lg text-center my-10">
@@ -65,7 +70,7 @@ function handlePickDate(date) {
         @select="(id) => emits('select', id)"
       />
       <!-- spinner  -->
-      <div v-if="rooms.length" class="spinner text-center my-5">
+      <div v-if="rooms.length > 5" class="spinner text-center my-5">
         <div
           class="box w-12 h-12 inline-block bg-black text-white rounded-full"
         ></div>

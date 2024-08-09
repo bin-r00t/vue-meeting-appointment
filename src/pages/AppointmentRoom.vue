@@ -17,8 +17,8 @@ const hintVisible = ref(false);
 
 /** 初始化会议室信息和预定信息 */
 getAppointmentList({
-  room_id: id,
-})
+  room_id: props.id,
+});
 
 /** 确定预约 */
 function handleConfirm() {

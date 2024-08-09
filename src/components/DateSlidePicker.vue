@@ -3,10 +3,12 @@ import { FunnelIcon } from "@heroicons/vue/24/outline";
 import { ref } from "vue";
 import dayjs from "dayjs";
 import Alert from "./Alert.vue";
+import { useSearchConditionStore } from "../store";
 
 const emits = defineEmits(["pick", "filter"]);
 
 /** 日期相关 */
+const searchCondition = useSearchConditionStore();
 const WEEK_CHN = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
 const week = Array(7)
   .fill(0)
@@ -19,6 +21,7 @@ const week = Array(7)
     };
   });
 const activeDate = ref(week[0].s);
+searchCondition.$patch({ date: week[0].r });
 const handleClickDate = (n) => {
   activeDate.value = n.s;
   emits("pick", n.r);

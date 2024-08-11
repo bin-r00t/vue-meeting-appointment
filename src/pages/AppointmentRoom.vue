@@ -4,11 +4,21 @@ import TimeBlock from "@com/TimeBlock.vue";
 import Alert from "@com/Alert.vue";
 import { UsersIcon, MapIcon } from "@heroicons/vue/24/outline";
 import { ChevronRightIcon } from "@heroicons/vue/24/solid";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import okIcon from "@/assets/ok.png";
 import failedIcon from "@/assets/notok.png";
 import { addAppointment, getAppointmentList } from "../api/appointment";
 import { useSearchConditionStore } from "../store";
+
+const TODO_TIME_ARR = [
+  { startTime: "08:00", endTime: "08:15" },
+  { startTime: "08:30", endTime: "08:45" },
+  { startTime: "08:45", endTime: "10:30" },
+  { startTime: "13:30", endTime: "14:00" },
+  { startTime: "14:30", endTime: "15:30" },
+  { startTime: "18:15", endTime: "19:00" },
+  { startTime: "20:45", endTime: "21:15" },
+];
 
 const props = defineProps(["id"]);
 const emits = defineEmits(["return"]);
@@ -23,7 +33,6 @@ getAppointmentList({
   room_id: props.id,
   datetime: searchCondition.date,
 }).then(({ data }) => {
-  console.log("data", data[0]);
   roomInfo.value = data[0];
 });
 
@@ -31,7 +40,8 @@ getAppointmentList({
 function handleConfirm() {
   addAppointment({
     ...formData,
-  })
+    attachment: seletedFiles.value.map((i) => i.id),
+  });
   hintVisible.value = true;
   setTimeout(() => {
     hintVisible.value = false;
@@ -41,24 +51,23 @@ function handleConfirm() {
 function handleCancel() {}
 
 /** 表单 */
+const selectedCount = computed(() => formData.value.participant.length);
 const resetFrom = () => {
   formData.value.room_id = props.id;
   formData.value.subject = "";
-  formData.value.date = "";
-  formData.value.time = "";
+  formData.value.date = searchCondition.date;
+  formData.value.time = [];
   formData.value.participant = [];
   formData.value.agenda = "";
-  formData.value.attachment = [];
 };
 const seletedFiles = ref([]);
 const formData = ref({
   room_id: props.id,
   subject: "",
-  date: "",
-  time: "",
+  date: searchCondition.date,
+  time: [],
   participant: [],
   agenda: "",
-  attachment: [],
 });
 </script>
 
@@ -127,10 +136,12 @@ const formData = ref({
               <label for="date" class="text-sm font-semibold mr-3"
                 >会议时间</label
               >
-              <span id="date" class="text-sm">今天02-24</span>
+              <span id="date" class="text-sm">{{ formData.date }}</span>
             </div>
-            <span class="time-selected text-sm pr-2 text-gray-600"
-              >18:30-19:30</span
+            <span
+              v-if="formData.time.length == 2"
+              class="time-selected text-sm pr-2 text-gray-600"
+              >{{ formData.time[0] }}-{{ formData.time[1] }}</span
             >
           </div>
           <p
@@ -138,12 +149,13 @@ const formData = ref({
           >
             选择方块预约，每个小方块15分钟，1小时划分为4个方块
           </p>
-          <TimeBlock />
+
+          <TimeBlock :time="roomInfo.time ?? TODO_TIME_ARR" />
 
           <div class="participant mt-3 flex flex-col gap-3">
             <section class="participant-add text-sm">
               <label for="participant" class="font-semibold">参会人</label>
-              <span class="text-gray-400"> (已选5人) </span>
+              <span class="text-gray-400"> (已选{{ selectedCount }}人) </span>
               <button class="float-right">
                 <ChevronRightIcon class="w-4 h-4" />
               </button>

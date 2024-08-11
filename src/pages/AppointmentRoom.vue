@@ -11,7 +11,7 @@ import { addAppointment, getAppointmentList } from "../api/appointment";
 import { useSearchConditionStore } from "../store";
 
 const TODO_TIME_ARR = [
-  { startTime: "08:00", endTime: "08:15" },
+  // { startTime: "08:00", endTime: "08:15" },
   { startTime: "08:30", endTime: "08:45" },
   { startTime: "08:45", endTime: "10:30" },
   { startTime: "13:30", endTime: "14:00" },

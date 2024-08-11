@@ -1,8 +1,9 @@
 <script setup>
 import { computed, ref } from "vue";
 import { timeBlock4 } from "../utils";
+import dayjs from "dayjs";
 
-const props = defineProps(["time"]);
+const props = defineProps(["time", "date"]);
 const startTime = ref();
 const endTime = ref();
 const selectedRange = computed(() => {
@@ -40,18 +41,48 @@ const selectedRange = computed(() => {
   }
 });
 // const needsCheckCol = new Set();
-const initialTimeOccupied = timeBlock4(props.time).reduce(
-  (prev, curr, currIndex) => {
-    curr.forEach((value, idx) => {
-      value && prev.push("" + currIndex + idx);
-      //   value && needsCheckCol.add(currIndex);
-    });
-    return prev;
-  },
-  []
-);
+const initialMatrix = timeBlock4(props.time);
+const initialTimeOccupied = initialMatrix.reduce((prev, curr, currIndex) => {
+  curr.forEach((value, idx) => {
+    value && prev.push("" + currIndex + idx);
+    //   value && needsCheckCol.add(currIndex);
+  });
+  return prev;
+}, []);
+/** 过期时间查询 - 如果是今天 */
+if (!props.date || (props.date && props.date == dayjs().format("YYYY-MM-DD"))) {
+  const now = Date.now();
+  let index = 8;
+  let quat = 0;
+  while (1) {
+    let indexTime = new Date().setHours(index, quat, 0, 0);
+    if (indexTime >= now) break;
+    initialTimeOccupied.push(`${index}${quat / 15}`);
+    quat += 15;
+    if (quat == 60) {
+      index++;
+      quat = 0;
+    }
+  }
+}
 
-const rangeCollapseCheck = (startTime, endTime) => {
+/**
+ * 比较两个时间矩阵是否有重合
+ * @param newMatrix 选择的时间矩阵
+ * @param oldMatrix 初始的时间矩阵
+ */
+const compare = (newMatrix, oldMatrix) => {
+  for (let i = 0; i < newMatrix.length; i++) {
+    for (let j = 0; j < 4; j++) {
+      if (newMatrix[i][j] && oldMatrix[i][j]) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const rangeCollapsed = (startTime, endTime) => {
   console.log("collapse", startTime, endTime);
   let stHour =
     (startTime.length == 2 ? +startTime[0] : +startTime.slice(0, 2)) + 8;
@@ -64,8 +95,13 @@ const rangeCollapseCheck = (startTime, endTime) => {
     etHour += 1;
   }
 
-  const a = [{ startTime: `${stHour}:${stMinute}` }];
+  const selectedRange = [
+    { startTime: `${stHour}:${stMinute}`, endTime: `${etHour}:${etMinute}` },
+  ];
   console.log(`${stHour}:${stMinute}`, " ", `${etHour}:${etMinute}`);
+
+  const newMatrix = timeBlock4(selectedRange);
+  return compare(newMatrix, initialMatrix);
   // 该函数无法优化:
   //   const startTimeIndex =
   //     startTime.length == 2 ? +startTime[0] : +startTime.slice(0, 2);
@@ -115,11 +151,13 @@ const handleClick = (n, m) => {
     if (
       startTime.value &&
       endTime.value &&
-      !rangeCollapseCheck(startTime.value, endTime.value)
+      rangeCollapsed(startTime.value, endTime.value)
     ) {
       // TODO：提示用户
       console.log("时间范围无效...");
       startTime.value = endTime.value = "";
+    } else {
+      console.log("时间有效!!!!!!!!!!!!!!!");
     }
   }
 };

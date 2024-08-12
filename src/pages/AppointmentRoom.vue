@@ -10,15 +10,15 @@ import failedIcon from "@/assets/notok.png";
 import { addAppointment, getAppointmentList } from "../api/appointment";
 import { useSearchConditionStore } from "../store";
 
-const TODO_TIME_ARR = [
-  // { startTime: "08:00", endTime: "08:15" },
-  { startTime: "08:30", endTime: "08:45" },
-  { startTime: "08:45", endTime: "10:30" },
-  { startTime: "13:30", endTime: "14:00" },
-  { startTime: "14:30", endTime: "15:30" },
-  { startTime: "18:15", endTime: "19:00" },
-  { startTime: "20:45", endTime: "21:15" },
-];
+// const TODO_TIME_ARR = [
+//   { startTime: "08:00", endTime: "08:15" },
+//   { startTime: "08:30", endTime: "08:45" },
+//   { startTime: "08:45", endTime: "10:30" },
+//   { startTime: "13:30", endTime: "14:00" },
+//   { startTime: "14:30", endTime: "15:30" },
+//   { startTime: "18:15", endTime: "19:00" },
+//   { startTime: "20:45", endTime: "21:15" },
+// ];
 
 const props = defineProps(["id"]);
 const emits = defineEmits(["return"]);
@@ -69,6 +69,9 @@ const formData = ref({
   participant: [],
   agenda: "",
 });
+const handlePickTime = (time) => {
+  formData.value.time = time;
+};
 </script>
 
 <template>
@@ -150,7 +153,11 @@ const formData = ref({
             选择方块预约，每个小方块15分钟，1小时划分为4个方块
           </p>
 
-          <TimeBlock :time="roomInfo.time ?? TODO_TIME_ARR" />
+          <TimeBlock
+            :time="roomInfo.time ?? []"
+            :date="formData.date"
+            @pick="handlePickTime"
+          />
 
           <div class="participant mt-3 flex flex-col gap-3">
             <section class="participant-add text-sm">

@@ -4,8 +4,11 @@ import { timeBlock4 } from "../utils";
 import dayjs from "dayjs";
 
 const props = defineProps(["time", "date"]);
+const emits = defineEmits(["pick"]);
+
 const startTime = ref();
 const endTime = ref();
+const validatedTime = ref();
 const selectedRange = computed(() => {
   if (!startTime.value && !endTime.value) return [];
   if (startTime.value && !endTime.value) return [startTime.value];
@@ -57,7 +60,7 @@ if (!props.date || (props.date && props.date == dayjs().format("YYYY-MM-DD"))) {
   while (1) {
     let indexTime = new Date().setHours(index, quat, 0, 0);
     if (indexTime >= now) break;
-    initialTimeOccupied.push(`${index}${quat / 15}`);
+    initialTimeOccupied.push(`${index - 8}${quat / 15}`);
     quat += 15;
     if (quat == 60) {
       index++;
@@ -84,6 +87,8 @@ const compare = (newMatrix, oldMatrix) => {
 
 const rangeCollapsed = (startTime, endTime) => {
   console.log("collapse", startTime, endTime);
+  if (!startTime || !endTime) return [false, null];
+
   let stHour =
     (startTime.length == 2 ? +startTime[0] : +startTime.slice(0, 2)) + 8;
   let stMinute = (startTime.length == 2 ? +startTime[1] : +startTime[2]) * 15;
@@ -96,33 +101,25 @@ const rangeCollapsed = (startTime, endTime) => {
   }
 
   const selectedRange = [
-    { startTime: `${stHour}:${stMinute}`, endTime: `${etHour}:${etMinute}` },
+    {
+      startTime: `${(stHour + "").padStart(2, "0")}:${(stMinute + "").padStart(
+        2,
+        "0"
+      )}`,
+      endTime: `${(etHour + "").padStart(2, "0")}:${(etMinute + "").padStart(
+        2,
+        "0"
+      )}`,
+    },
   ];
-  console.log(`${stHour}:${stMinute}`, " ", `${etHour}:${etMinute}`);
 
   const newMatrix = timeBlock4(selectedRange);
-  return compare(newMatrix, initialMatrix);
-  // 该函数无法优化:
-  //   const startTimeIndex =
-  //     startTime.length == 2 ? +startTime[0] : +startTime.slice(0, 2);
-  //   const endTimeIndex = endTime.length == 2 ? +endTime[0] : +endTime.slice(0, 2);
-  //   if (!needsCheckCol.has(startTimeIndex) && !needsCheckCol.has(endTimeIndex))
-  //     return true;
-  //   console.log(
-  //     "合法性检查",
-  //     needsCheckCol,
-  //     startTime,
-  //     endTime,
-  //     startTimeIndex,
-  //     endTimeIndex
-  //   );
+  return [compare(newMatrix, initialMatrix), selectedRange];
 };
-
-console.log("initial time occupied", initialTimeOccupied);
 
 const handleClick = (n, m) => {
   if (initialTimeOccupied.includes("" + (n - 1) + (m - 1))) {
-    console.log("not allowed!");
+    alert("not allowed!");
     return;
   }
   if (!startTime.value) {
@@ -148,16 +145,12 @@ const handleClick = (n, m) => {
     }
 
     /** 范围有效性检查 */
-    if (
-      startTime.value &&
-      endTime.value &&
-      rangeCollapsed(startTime.value, endTime.value)
-    ) {
-      // TODO：提示用户
-      console.log("时间范围无效...");
+    const [valid, timeRange] = rangeCollapsed(startTime.value, endTime.value);
+    if (valid) {
+      alert("时间范围无效");
       startTime.value = endTime.value = "";
     } else {
-      console.log("时间有效!!!!!!!!!!!!!!!");
+      emits("pick", timeRange);
     }
   }
 };

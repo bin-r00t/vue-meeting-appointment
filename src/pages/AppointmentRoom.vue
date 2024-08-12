@@ -2,7 +2,7 @@
 import MeetingAppHeader from "@com/MeetingAppHeader.vue";
 import TimeBlock from "@com/TimeBlock.vue";
 import Alert from "@com/Alert.vue";
-import { UsersIcon, MapIcon } from "@heroicons/vue/24/outline";
+import { UsersIcon, MapIcon, XMarkIcon } from "@heroicons/vue/24/outline";
 import { ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { computed, ref } from "vue";
 import okIcon from "@/assets/ok.png";
@@ -25,6 +25,8 @@ const emits = defineEmits(["return"]);
 
 const uploadInput = ref(null);
 const hintVisible = ref(false);
+const participantListVisible = ref(false);
+const currentSelectUser = ref("default");
 
 /** 初始化会议室信息和预定信息 */
 const roomInfo = ref({});
@@ -51,6 +53,12 @@ function handleConfirm() {
 function handleCancel() {}
 
 /** 表单 */
+const users = {
+  xiaoli: "小李",
+  xiaowang: "小王",
+  xiaozhang: "校长",
+  xiangwu: "向武",
+};
 const selectedCount = computed(() => formData.value.participant.length);
 const resetFrom = () => {
   formData.value.room_id = props.id;
@@ -71,6 +79,37 @@ const formData = ref({
 });
 const handlePickTime = (time) => {
   formData.value.time = time;
+};
+const handleSelectParticipant = () => {
+  participantListVisible.value = true;
+};
+const handlePickUser = () => {
+  if (currentSelectUser.value == "default") {
+    participantListVisible.value = false;
+    return;
+  }
+  /** 查重 */
+  if (
+    formData.value.participant.findIndex(
+      (p) => p.id == currentSelectUser.value
+    ) != -1
+  ) {
+    alert("该参会人已加入会议");
+    return;
+  }
+
+  formData.value.participant.push({
+    id: currentSelectUser.value,
+    name: users[currentSelectUser.value],
+  });
+
+  currentSelectUser.value = "default";
+  participantListVisible.value = false;
+};
+const handleRemoveParticipant = (p) => {
+  formData.value.participant = formData.value.participant.filter(
+    (item) => item.id != p.id
+  );
 };
 </script>
 
@@ -159,12 +198,16 @@ const handlePickTime = (time) => {
             @pick="handlePickTime"
           />
 
-          <div class="participant mt-3 flex flex-col gap-3">
-            <section class="participant-add text-sm">
+          <div class="participant mt-4 flex flex-col gap-3">
+            <section class="participant-add text-sm flex gap-1 items-center">
               <label for="participant" class="font-semibold">参会人</label>
               <span class="text-gray-400"> (已选{{ selectedCount }}人) </span>
-              <button class="float-right">
-                <ChevronRightIcon class="w-4 h-4" />
+              <button
+                id="participant"
+                class="h-6 flex-1 text-right"
+                @click="handleSelectParticipant"
+              >
+                <ChevronRightIcon class="inline-block w-4 h-4" />
               </button>
             </section>
             <section class="participant-selected flex flex-wrap gap-3">
@@ -178,9 +221,16 @@ const handlePickTime = (time) => {
                 <span
                   v-for="person in formData.participant"
                   :key="person"
-                  class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs"
-                  >{{ person }}</span
-                >
+                  class="text-gray-600 bg-gray-100 rounded p-1 px-2 text-nowrap text-xs relative"
+                  >{{ person.name }}
+                  <button
+                    @click="() => handleRemoveParticipant(person)"
+                    class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-600 text-white"
+                  >
+                    <XMarkIcon
+                      class="inline-block w-3 h-3 leading-3 mb-2"
+                    /></button
+                ></span>
               </template>
             </section>
           </div>
@@ -242,6 +292,30 @@ const handlePickTime = (time) => {
     </template>
     <template #opts>
       <div></div>
+    </template>
+  </Alert>
+
+  <!-- 人员选择提示  -->
+  <Alert
+    :visible="participantListVisible"
+    @close="participantListVisible = false"
+    @ok="handlePickUser"
+  >
+    <template #title>
+      <h1>参会人列表</h1>
+    </template>
+    <template #content>
+      <div class="flex flex-col">
+        <select
+          v-model="currentSelectUser"
+          class="outline-none border p-1 rounded text-sm"
+        >
+          <option value="default" disabled class="text-gray-500">
+            - 请选择参会人 -
+          </option>
+          <option v-for="(n, k) in users" :value="k">{{ n }}</option>
+        </select>
+      </div>
     </template>
   </Alert>
 </template>

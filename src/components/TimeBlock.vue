@@ -76,7 +76,7 @@ watch(
       while (1) {
         let indexTime = new Date().setHours(index, quat, 0, 0);
         if (indexTime >= now) break;
-        initialTimeOccupied.push(`${index - 8}${quat / 15}`);
+        initialTimeOccupied.value.push(`${index - 8}${quat / 15}`);
         quat += 15;
         if (quat == 60) {
           index++;
@@ -96,7 +96,7 @@ watch(
 const compare = (newMatrix, oldMatrix) => {
   for (let i = 0; i < newMatrix.length; i++) {
     for (let j = 0; j < 4; j++) {
-      if (newMatrix[i][j] && oldMatrix[i][j]) {
+      if (newMatrix[i][j] && oldMatrix[i]?.[j]) {
         return true;
       }
     }
@@ -137,7 +137,7 @@ const rangeCollapsed = (startTime, endTime) => {
 };
 
 const handleClick = (n, m) => {
-  if (initialTimeOccupied.includes("" + (n - 1) + (m - 1))) {
+  if (initialTimeOccupied.value.includes("" + (n - 1) + (m - 1))) {
     alert("not allowed!");
     return;
   }

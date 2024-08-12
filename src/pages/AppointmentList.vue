@@ -18,7 +18,7 @@ watch(
   }
 );
 
-const defaultDate = ref(dayjs().format("YYYY-MM-DD"));
+const defaultDate = ref(searchCondition.date);
 const rooms = ref([]);
 // const TODO_TIME_ARR = [
 //   { startTime: "08:00", endTime: "08:15" },

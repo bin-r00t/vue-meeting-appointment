@@ -4,21 +4,15 @@ import TimeBlock from "@com/TimeBlock.vue";
 import Alert from "@com/Alert.vue";
 import { UsersIcon, MapIcon, XMarkIcon } from "@heroicons/vue/24/outline";
 import { ChevronRightIcon } from "@heroicons/vue/24/solid";
-import { computed, ref } from "vue";
+import { computed, ref, onMounted } from "vue";
 import okIcon from "@/assets/ok.png";
 import failedIcon from "@/assets/notok.png";
-import { addAppointment, getAppointmentList } from "../api/appointment";
+import {
+  addAppointment,
+  getAppointmentList,
+  uploadFile,
+} from "../api/appointment";
 import { useSearchConditionStore } from "../store";
-
-// const TODO_TIME_ARR = [
-//   { startTime: "08:00", endTime: "08:15" },
-//   { startTime: "08:30", endTime: "08:45" },
-//   { startTime: "08:45", endTime: "10:30" },
-//   { startTime: "13:30", endTime: "14:00" },
-//   { startTime: "14:30", endTime: "15:30" },
-//   { startTime: "18:15", endTime: "19:00" },
-//   { startTime: "20:45", endTime: "21:15" },
-// ];
 
 const props = defineProps(["id"]);
 const emits = defineEmits(["return"]);
@@ -34,6 +28,8 @@ const searchCondition = useSearchConditionStore();
 getAppointmentList({
   room_id: props.id,
   datetime: searchCondition.date,
+  page: 1,
+  limit: 1,
 }).then(({ data }) => {
   roomInfo.value = data[0];
 });
@@ -42,15 +38,27 @@ getAppointmentList({
 function handleConfirm() {
   addAppointment({
     ...formData,
-    attachment: seletedFiles.value.map((i) => i.id),
+    attachment: seletedFiles.value.map((i) => i.id).join(","),
+    participant: formData.value.participant.map((p) => p.id).join(","),
+  }).then((res) => {
+    if (res.success) {
+      hintVisible.value = "success";
+      setTimeout(() => {
+        hintVisible.value = null;
+        emits("return");
+      }, 2000);
+    } else {
+      hintVisible.value = "failed";
+      setTimeout(() => {
+        hintVisible.value = null;
+      }, 2000);
+    }
   });
-  hintVisible.value = true;
-  setTimeout(() => {
-    hintVisible.value = false;
-  }, 2000);
 }
 /** 取消本次预约 */
-function handleCancel() {}
+function handleCancel() {
+  emits("return");
+}
 
 /** 表单 */
 const users = {
@@ -60,25 +68,53 @@ const users = {
   xiangwu: "向武",
 };
 const selectedCount = computed(() => formData.value.participant.length);
-const resetFrom = () => {
-  formData.value.room_id = props.id;
-  formData.value.subject = "";
-  formData.value.date = searchCondition.date;
-  formData.value.time = [];
-  formData.value.participant = [];
-  formData.value.agenda = "";
+// const resetFrom = () => {
+//   formData.value.room_id = props.id;
+//   formData.value.subject = "";
+//   formData.value.date = searchCondition.date;
+//   formData.value.time = [];
+//   formData.value.participant = [];
+//   formData.value.agenda = "";
+// };
+const selectedFiles = ref([]);
+onMounted(() => {
+  /** 删除功能，不写了，TODO吧 */
+  /** 注册文件上传事件 */
+  uploadInput.value.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    const fd = new FormData();
+    fd.append("file", file);
+
+    uploadFile(fd).then(({ data }) => {
+      selectedFiles.value.push({
+        id: data.id,
+        name: data.name,
+        path: data.path,
+        size: data.size,
+        suffix: data.suffix,
+      });
+    });
+  });
+});
+const handlePickFile = () => {
+  uploadInput.value.click();
 };
-const seletedFiles = ref([]);
+const handleConfirmDeleteFile = (id) => {
+  selectedFiles.value = selectedFiles.value.filter((file) => file.id != id);
+};
+
 const formData = ref({
   room_id: props.id,
   subject: "",
   date: searchCondition.date,
-  time: [],
+  startTime: null,
+  endTime: null,
   participant: [],
   agenda: "",
 });
-const handlePickTime = (time) => {
-  formData.value.time = time;
+const handlePickTime = ([{ startTime, endTime }]) => {
+  formData.value.startTime = startTime;
+  formData.value.endTime = endTime;
 };
 const handleSelectParticipant = () => {
   participantListVisible.value = true;
@@ -181,9 +217,9 @@ const handleRemoveParticipant = (p) => {
               <span id="date" class="text-sm">{{ formData.date }}</span>
             </div>
             <span
-              v-if="formData.time.length == 2"
+              v-if="formData.startTime && formData.endTime"
               class="time-selected text-sm pr-2 text-gray-600"
-              >{{ formData.time[0] }}-{{ formData.time[1] }}</span
+              >{{ formData.startTime }}-{{ formData.endTime }}</span
             >
           </div>
           <p
@@ -193,7 +229,7 @@ const handleRemoveParticipant = (p) => {
           </p>
 
           <TimeBlock
-            :time="roomInfo.time ?? []"
+            :time="roomInfo.time"
             :date="formData.date"
             @pick="handlePickTime"
           />
@@ -251,8 +287,21 @@ const handleRemoveParticipant = (p) => {
         <div class="files pt-3 text-sm flex flex-col gap-3">
           <label for="file" class="font-semibold">附件</label>
           <input type="file" hidden ref="uploadInput" />
-          <button class="rounded border p-2">选择附件</button>
-          <div class="file-list min-h-24 bg-gray-100 mb-2"></div>
+          <button class="rounded border p-2" @click="handlePickFile">
+            选择附件
+          </button>
+          <div class="file-list max-h-24 overflow-y-auto mb-2">
+            <ul class="file-list__inner flex gap-2 flex-wrap">
+              <li
+                v-for="file in selectedFiles"
+                :key="file.id"
+                class="text-gray-800 p-1 px-2 rounded bg-gray-100 text-xs"
+                @click="() => handleConfirmDeleteFile(file.id)"
+              >
+                {{ file.name }}
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="btn-groups pt-6 pb-3 flex gap-3">
@@ -274,17 +323,17 @@ const handleRemoveParticipant = (p) => {
   </div>
 
   <!-- 是否操作成功的提示  -->
-  <Alert :visible="hintVisible">
+  <Alert :visible="!!hintVisible">
     <template #title>
       <h1></h1>
     </template>
     <template #content>
       <div class="flex flex-col gap-2 items-center">
-        <template v-if="0">
+        <template v-if="hintVisible == 'success'">
           <img :src="okIcon" alt="ok icon" width="64" />
           <p>提交成功!</p>
         </template>
-        <template v-if="!0">
+        <template v-else>
           <img :src="failedIcon" alt="failed icon" width="64" />
           <p>出错了</p>
         </template>

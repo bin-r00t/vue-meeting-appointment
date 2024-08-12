@@ -1,12 +1,13 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:8000",
+  // baseURL: "http://localhost:8000",
+  baseURL: "/api",
   timeout: 10000,
 });
 
 instance.interceptors.request.use(function (config) {
-  config.headers["Content-Type"] = "application/json";
+  // config.headers["Content-Type"] = "application/json";
   return config;
 });
 

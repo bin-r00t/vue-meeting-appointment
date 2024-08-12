@@ -7,7 +7,7 @@ import instance from "@/utils/request";
  */
 export function getAppointmentList(params) {
   return instance({
-    url: "/api/room/listByDate",
+    url: "/room/listByDate",
     method: "post",
     params,
   });
@@ -20,7 +20,7 @@ export function getAppointmentList(params) {
  */
 export function addAppointment(data) {
   return instance({
-    url: "/api/appointment/add",
+    url: "/appointment/add",
     method: "post",
     data,
   });
@@ -33,7 +33,7 @@ export function addAppointment(data) {
  */
 export function updateAppointment(data) {
   return instance({
-    url: "/api/appointment/update",
+    url: "/appointment/update",
     method: "put",
     data,
   });
@@ -46,7 +46,7 @@ export function updateAppointment(data) {
  */
 export function delAppointment(params) {
   return instance({
-    url: "/api/appointment/delete",
+    url: "/appointment/delete",
     method: "delete",
     params,
   });
@@ -59,7 +59,7 @@ export function delAppointment(params) {
  */
 export function uploadFile(file) {
   return instance({
-    url: "/api/upload",
+    url: "/upload",
     method: "post",
     data: null
   });
@@ -72,7 +72,7 @@ export function uploadFile(file) {
  */
 export function downloadFile(id) {
   return instance({
-    url: "/api/download",
+    url: "/download",
     method: "post",
     data: {id},
   });

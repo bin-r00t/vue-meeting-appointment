@@ -24,6 +24,7 @@ const activeDate = ref(week[0].s);
 searchCondition.$patch({ date: week[0].r });
 const handleClickDate = (n) => {
   activeDate.value = n.s;
+  searchCondition.$patch({ date: n.r });
   emits("pick", n.r);
 };
 

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { timeBlock4 } from "../utils";
 import dayjs from "dayjs";
 
@@ -8,7 +8,6 @@ const emits = defineEmits(["pick"]);
 
 const startTime = ref();
 const endTime = ref();
-const validatedTime = ref();
 const selectedRange = computed(() => {
   if (!startTime.value && !endTime.value) return [];
   if (startTime.value && !endTime.value) return [startTime.value];
@@ -43,31 +42,51 @@ const selectedRange = computed(() => {
     return range;
   }
 });
+
 // const needsCheckCol = new Set();
-const initialMatrix = timeBlock4(props.time);
-const initialTimeOccupied = initialMatrix.reduce((prev, curr, currIndex) => {
-  curr.forEach((value, idx) => {
-    value && prev.push("" + currIndex + idx);
-    //   value && needsCheckCol.add(currIndex);
-  });
-  return prev;
-}, []);
-/** 过期时间查询 - 如果是今天 */
-if (!props.date || (props.date && props.date == dayjs().format("YYYY-MM-DD"))) {
-  const now = Date.now();
-  let index = 8;
-  let quat = 0;
-  while (1) {
-    let indexTime = new Date().setHours(index, quat, 0, 0);
-    if (indexTime >= now) break;
-    initialTimeOccupied.push(`${index - 8}${quat / 15}`);
-    quat += 15;
-    if (quat == 60) {
-      index++;
-      quat = 0;
+const initialMatrix = ref([]);
+const initialTimeOccupied = ref([]);
+
+watch(
+  () => props.time,
+  (val) => {
+    if (!val) return;
+    initialMatrix.value = timeBlock4(val);
+    initialTimeOccupied.value = initialTimeOccupied.value.concat(
+      initialMatrix.value.reduce((prev, curr, currIndex) => {
+        curr.forEach((value, idx) => {
+          value && prev.push("" + currIndex + idx);
+          //   value && needsCheckCol.add(currIndex);
+        });
+        return prev;
+      }, [])
+    );
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.date,
+  (val) => {
+    /** 过期时间查询 - 如果是今天 */
+    if (!val || (val && val == dayjs().format("YYYY-MM-DD"))) {
+      const now = Date.now();
+      let index = 8;
+      let quat = 0;
+      while (1) {
+        let indexTime = new Date().setHours(index, quat, 0, 0);
+        if (indexTime >= now) break;
+        initialTimeOccupied.push(`${index - 8}${quat / 15}`);
+        quat += 15;
+        if (quat == 60) {
+          index++;
+          quat = 0;
+        }
+      }
     }
-  }
-}
+  },
+  { immediate: true }
+);
 
 /**
  * 比较两个时间矩阵是否有重合
@@ -114,7 +133,7 @@ const rangeCollapsed = (startTime, endTime) => {
   ];
 
   const newMatrix = timeBlock4(selectedRange);
-  return [compare(newMatrix, initialMatrix), selectedRange];
+  return [compare(newMatrix, initialMatrix.value), selectedRange];
 };
 
 const handleClick = (n, m) => {
